@@ -3,39 +3,32 @@ import time
 import re
 from selenium import webdriver
 from selenium.webdriver.common.by import By
-from fastapi import FastAPI, Request
+from fastapi import FastAPI
 from transformers import pipeline
 from helium import *
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
-from fastapi.templating import Jinja2Templates
-from typing import Optional
-
 
 print("Server loading...")
 app = FastAPI()
-templates = Jinja2Templates(directory="templates")
-app.mount("/static", StaticFiles(directory="static"), name="static")
-app.mount("/assets", StaticFiles(directory="assets"), name="assets")
-# CORS ì„¤ì •
-# CORS ë¯¸ë“¤ì›¨ì–´ ì„¤ì •
+# CORS ¼³Á¤
+# CORS ¹Ìµé¿ş¾î ¼³Á¤
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # ì´ ë¶€ë¶„ì„ í•„ìš”ì— ë”°ë¼ ìˆ˜ì •í•˜ì„¸ìš”. "*"ëŠ” ëª¨ë“  originì„ í—ˆìš©í•©ë‹ˆë‹¤.
+    allow_origins=["*"],  # ÀÌ ºÎºĞÀ» ÇÊ¿ä¿¡ µû¶ó ¼öÁ¤ÇÏ¼¼¿ä. "*"´Â ¸ğµç originÀ» Çã¿ëÇÕ´Ï´Ù.
     allow_credentials=True,
-    allow_methods=["*"],  # í•„ìš”í•œ HTTP ë©”ì„œë“œë¥¼ ì§€ì •í•˜ì„¸ìš”.
-    allow_headers=["*"],  # í•„ìš”í•œ í—¤ë”ë¥¼ ì§€ì •í•˜ì„¸ìš”.
+    allow_methods=["*"],  # ÇÊ¿äÇÑ HTTP ¸Ş¼­µå¸¦ ÁöÁ¤ÇÏ¼¼¿ä.
+    allow_headers=["*"],  # ÇÊ¿äÇÑ Çì´õ¸¦ ÁöÁ¤ÇÏ¼¼¿ä.
 )
 print("Server loaded")
 
-# ëª¨ë¸ ë¡œë“œ
+# ¸ğµ¨ ·Îµå
 print("model loading...")
 sentiment_model = pipeline(model="WhitePeak/bert-base-cased-Korean-sentiment")
 sum_model = pipeline("summarization", model="psyche/KoT5-summarization")
 print("model loaded")
 
-# ì›¹ ë“œë¼ì´ë²„ ìƒì„±
+# À¥ µå¶óÀÌ¹ö »ı¼º
 print("web driver loading...")
 options = webdriver.ChromeOptions()
 options.page_load_strategy = "none"
@@ -79,8 +72,8 @@ print("web driver loaded")
 def fetch_reviews(url):
     restaurant_data = {}
     driver.get(url)
-    # í˜ì´ì§€ ë¡œë”© ëŒ€ê¸°
-    wait_until(Text("ì „ì²´").exists, timeout_secs=10)
+    # ÆäÀÌÁö ·Îµù ´ë±â
+    wait_until(Text("ÀüÃ¼").exists, timeout_secs=10)
 
     restaurant_name = ""
     least_review_number = 3
@@ -90,13 +83,13 @@ def fetch_reviews(url):
     restaurant_name = driver.find_elements(By.CSS_SELECTOR, ".tit_location")[1].text
 
     restaurant_data = {restaurant_name: []}
-    print("ë¦¬ë·° ì¡°íšŒ ì‹œì‘")
+    print("¸®ºä Á¶È¸ ½ÃÀÛ")
     while True:
-        if Text("í›„ê¸° ë”ë³´ê¸°").exists():
-            click(Text("í›„ê¸° ë”ë³´ê¸°"))
+        if Text("ÈÄ±â ´õº¸±â").exists():
+            click(Text("ÈÄ±â ´õº¸±â"))
             time.sleep(0.1)
         else:
-            print("ë”ì´ìƒ í›„ê¸°ê°€ ì—†ìŠµë‹ˆë‹¤.")
+            print("´õÀÌ»ó ÈÄ±â°¡ ¾ø½À´Ï´Ù.")
             break
 
     review_list = driver.find_elements(By.CSS_SELECTOR, ".list_evaluation > li")
@@ -131,12 +124,18 @@ def fetch_reviews(url):
         total_review += 1
         ave_relative_score += average_star - star
 
+    average_relative_score=1
+    if total_review==0:
+        average_relative_score=0
+    else:
+        average_relative_score=round(ave_relative_score/total_review,2)
+
     with open("crawling_data.json", "w", encoding="utf-8") as f:
         json.dump(restaurant_data, f, indent=4, ensure_ascii=False)
 
     return {
         "restaurant_name": restaurant_name,
-        "average_relative_score": round(ave_relative_score / total_review, 2),
+        "average_relative_score": average_relative_score,
         "review_data": restaurant_data,
     }
 
@@ -194,14 +193,12 @@ def save_review_to_json(
 
     restaurant_data[restaurant_name].append(review_dict)
 
-
 class InputData(BaseModel):
     url: str
 
-
-@app.post("/result")
-async def scrape_and_get_reviews(data: InputData):
-    url = data.url
+@app.post("/")
+def scrape_and_get_reviews(data: InputData):
+    url=data.url
     start_time = time.time()
     print("fetch_reviews start")
     data = fetch_reviews(url)
@@ -212,26 +209,26 @@ async def scrape_and_get_reviews(data: InputData):
     con = []
     res_name = data["restaurant_name"]
 
-    pos_num = 0
-    neg_num = 0
+    pos_num=0;
+    neg_num=0;
 
-    # ê³µë°±ì¸ ë¦¬ë·° ì œê±°
+    # °ø¹éÀÎ ¸®ºä Á¦°Å
     for review in data["review_data"][res_name]:
         if review["review_content"] != "":
             con.append(review["review_content"])
 
-    # ê¸ì • ë¶€ì • ë¦¬ë·° ë¶„ë¥˜
-    print("ê°ì • ë¶„ë¥˜ ì‹œì‘ : ", time.time() - start_time)
+    # ±àÁ¤ ºÎÁ¤ ¸®ºä ºĞ·ù
+    print("°¨Á¤ ºĞ·ù ½ÃÀÛ")
     for review in con:
         # print(sentiment_model(review)[0]["label"])
         # print(review)
-        if sentiment_model(review)[0]["label"] == "LABEL_1":  # ê¸ì •
+        if sentiment_model(review)[0]["label"] == "LABEL_1":  # ±àÁ¤
             pos_con.append(review)
             pos_num+=1
-        elif sentiment_model(review)[0]["label"] == "LABEL_0":  # ë¶€ì •
+        elif sentiment_model(review)[0]["label"] == "LABEL_0":  # ºÎÁ¤
             neg_num+=1
             neg_con.append(review)
-    print("ê°ì • ë¶„ë¥˜ ì™„ë£Œ : ", time.time() - start_time)
+    print("°¨Á¤ ºĞ·ù ¿Ï·á")
 
     positive_sum = ""
     for review in pos_con:
@@ -241,27 +238,19 @@ async def scrape_and_get_reviews(data: InputData):
         negative_sum += review + "\n"
 
     sum_review = []
-    print("ë¦¬ë·° ìš”ì•½ ì‹œì‘ : ", time.time() - start_time)
+    print("¸®ºä ¿ä¾à ½ÃÀÛ")
     sum_review.append(sum_model(positive_sum, max_length=100, min_length=5))
     sum_review.append(sum_model(negative_sum, max_length=100, min_length=5))
     sum_review.append(data["average_relative_score"])
-    print("ë¦¬ë·° ìš”ì•½ ì™„ë£Œ: ", time.time() - start_time)
+    print("¸®ºä ¿ä¾à ¿Ï·á")
     end_time = time.time()
-    print("ì†Œìš” ì‹œê°„ : ", end_time - start_time)
+    print("¼Ò¿ä ½Ã°£ : ", end_time - start_time)
     average_star=data["average_relative_score"]
 
     return sum_review, average_star, pos_num, neg_num
 
 
-@app.get('/')
-async def main(request: Request):
-    return templates.TemplateResponse('main.html', {'request': request})
-
-@app.get("/resultPage")
-async def result(request: Request, name: Optional[str] = None, id: Optional[int] = None):
-    return templates.TemplateResponse("resultPage.html", {"request": request})
-
 if __name__ == "__main__":
     import uvicorn
 
-    uvicorn.run("main:app", host="127.0.0.1", port=8001, reload=True)
+    uvicorn.run(app, host="127.0.0.1", port=8000)
