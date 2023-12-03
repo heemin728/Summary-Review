@@ -54,8 +54,9 @@ function searchPlaces(query) {
 // '확인하기' 버튼을 눌렀을 때 - 크롤링 시작
 function startFetching(data) {
 
-    // const server_url = "http://1.230.255.45:8001/result"
     const server_url="http://127.0.0.1:8001/result"
+    // const server_url = "http://1.230.255.45:8001/result"
+
     currentId = data.id;
     const url = "http://place.map.kakao.com/" + data.id;
     const headerResultContainer = document.getElementById("headResult");

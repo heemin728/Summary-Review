@@ -185,6 +185,10 @@ left: 45%;
     }
 }
 
+#rating-div{
+    height:80px;
+    margin-bottom:20px;
+}
 
 #rating-bar{
     --rem: 16;
@@ -199,13 +203,20 @@ left: 45%;
     height: 27px;
     width: 151px;
     float: left;
-    margin-left: 400px;
-    margin-bottom: 50px;
+    /* margin-left: 400px; */
+    /* align-items:center; */
+    /* margin: 0 auto; */
+    position:absolute;
+    left:50%;
+    margin-left:-70px;
 }
 
 @media (max-width: 768px) {
     #rating-bar{
-        margin-left: 120px;
+        /* margin-left: 120px; */
+        position:absolute;
+        left:50%;
+        margin-left:-70px;
     }
 }
 
@@ -221,6 +232,7 @@ left: 45%;
     background-position: 0 -30px;
     height: 100%;
     width: 80%;
+    margin-bottom:50px;
 }
   
 /*-----------------------------------------------------�̻� �� �ڵ�-------------------------------------*/
