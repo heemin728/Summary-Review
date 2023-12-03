@@ -4,9 +4,23 @@ const apiKey = 'bc4b457fb0e80dfecd077dfd9dc885d2'; // 카카오 API 키
 let restaurantData = [];
 let currentId;
 
-// 입력한 검색어로 카카오에서 음식점 리스트 받아옴..
+document.addEventListener('DOMContentLoaded', function () {
+    checkIfKeywordExists(); // 검색할 키워드가 주소에 있는지 확인 
+});
+
+function checkIfKeywordExists() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const query = urlParams.get('query');
+
+    if (!query) {
+        return;
+    }
+    document.getElementById('searchInput').value = query;
+    searchPlaces(); // 키워드로 카카오 API 받아오기
+}
+
+// 입력한 검색어로 카카오에서 음식점 리스트 받아오는 함수
 function searchPlaces() {
-    console.log('search');
     const query = searchInput.value;
 
     if (!query) {
@@ -25,10 +39,9 @@ function searchPlaces() {
         .then(response => response.json())
         .then(data => {
             console.log(data);
-            storeRestaurantResults(data);
-            displayResults(data);
-            noticeResults(query);
-            moveScroll();
+            storeRestaurantResults(data); // 식당 정보 저장
+            displayResults(query, data); // 리스트 표시
+            moveScroll(); // 스크롤 아래로 쭉
         })
         .catch(error => {
             console.error('에러:', error);
@@ -73,13 +86,13 @@ function moveScroll() {
     window.scrollTo({ left: 0, top: target - 150 });
 }
 
-function noticeResults(query) {
-    const noticeArea = document.getElementById("notice");
-    noticeArea.innerHTML = `'${query}'의 검색 결과입니다. `
-}
 
 // 카카오 API에서 가져온 리스트 보여주기
-function displayResults(data) {
+function displayResults(query, data) {
+
+    const noticeArea = document.getElementById("notice");
+    noticeArea.innerHTML = `'${query}'의 검색 결과입니다. `
+
     resultDiv.innerHTML = '';
 
     if (data.documents.length === 0) {
@@ -95,23 +108,14 @@ function displayResults(data) {
         const className = "list-group-item";
         resultDiv.innerHTML +=
             `<li class="${className}" style="display: flex; align-items: center;">
-        <div style="flex: 1;">
-           <p> <h2 class="my-font"><strong>${name}</strong></h2>${address}</p>
-        </div>
-        <button id="${id}" class="btn btn-primary btn-lg"  onClick="movePage(this.id)" style="margin-left: 30px;">확인하기</button>
-         </li>`;
+                <div style="flex: 1;">
+                    <p> <h2 class="my-font"><strong>${name}</strong></h2>${address}</p>
+                </div>
+                <button id="${id}" class="btn btn-primary btn-lg"  onClick="movePage(this.id)" style="margin-left: 30px;">확인하기</button>
+            </li>`;
     });
 }
 
-
 function movePage(id) {
-    // 새로운 페이지의 URL을 지정
-    // console.log(getRestaurantResultsById(id).name);
-    const data = { name: getRestaurantResultsById(id).name, id: id };
-    console.log('data -> ',data);
-   
-    const queryString = Object.keys(data).map(key => key + '=' + data[key]).join('&');
-    const newPageURL = '/resultPage?'+queryString; 
-    // 페이지 이동
-    window.location.href = newPageURL;
+    window.location.href = `/resultPage?name=${getRestaurantResultsById(id).address} ${getRestaurantResultsById(id).name}`;
 }
