@@ -110,11 +110,27 @@
     color: var(--color-secondary);
 }
 
-#searchResult.container-sm{
-    margin-left:0px;
+#searchResult.container-sm{ /*수정*/
+    margin-left: 180px;
     align-items: center;
+    /*align-items: center;*/
   }
   
+/* #list-group-item{
+    width: 80%;
+    height: 300px;    
+} */
+
+@media (max-width: 786px) {
+    #searchResult.container-sm {
+        margin-left: auto;
+        margin-right: auto;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+}
+
   #pos-sum, #neg-sum{
     background-color: lightgray;
   }
@@ -223,6 +239,7 @@ body {
     /* ���â ��� */
     -webkit-text-size-adjust: 100%;
     -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+       
 }
 
 hr {
@@ -875,6 +892,7 @@ progress {
 .col-auto {
     flex: 0 0 auto;
     width: auto;
+    margin-top: 10px;
 }
 
 .col-1 {
@@ -12573,6 +12591,16 @@ html {
     }
 }
 
+#notice {
+    font-size: 24px;
+}
+
+/* 작은 화면일 때 */
+@media (max-width: 576px) {
+    #notice {
+        font-size: 18px;
+    }
+}
 .divider-custom {
     margin: 1.25rem 0 1.5rem;
     width: 100%;
