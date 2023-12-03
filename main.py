@@ -140,13 +140,17 @@ def fetch_reviews(url):
 
         total_review += 1
         ave_relative_score += average_star - star
+    
+    ret_average_score=-10
+    if total_review!=0:
+        ret_average_score=round(ave_relative_score / total_review, 2)
 
     with open("crawling_data.json", "w", encoding="utf-8") as f:
         json.dump(restaurant_data, f, indent=4, ensure_ascii=False)
 
     return {
         "restaurant_name": restaurant_name,
-        "average_relative_score": round(ave_relative_score / total_review, 2),
+        "average_relative_score": ret_average_score,
         "review_data": restaurant_data,
     }
 
