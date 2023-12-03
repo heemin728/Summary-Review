@@ -152,21 +152,59 @@
 }
 
 
-  #pos-sum, #neg-sum{
-    background-color: lightgray;
-  }
+#pos-sum, #neg-sum{
+background-color: lightgray;
+}
   
-  #spinner1{
-    display: none;
-    position: fixed;
-    top: 45%;
-    left: 45%;
-  }
+#spinner1{
+display: none;
+position: fixed;
+top: 45%;
+left: 45%;
+}
 
-  @media (max-width: 768px) {
+@media (max-width: 768px) {
     #spinner1{
         left:35%;
     }
+}
+
+
+#rating-bar{
+    --rem: 16;
+    color: #000;
+    font-family: "\B9D1\C740   \ACE0\B515",Malgun Gothic,sans-serif;
+    font-size: 14px;
+    letter-spacing: -1px;
+    line-height: 1.5;
+    background: url(//t1.daumcdn.net/localimg/localimages/07/2018/pc/ico_star_220608.png) no-repeat;
+    display: block;
+    background-position: 0 0;
+    height: 27px;
+    width: 151px;
+    float: left;
+    margin-left: 400px;
+    margin-bottom: 50px;
+}
+
+@media (max-width: 768px) {
+    #rating-bar{
+        margin-left: 120px;
+    }
+}
+
+#rating-bar-inner{
+    --rem: 16;
+    color: #000;
+    font-family: "\B9D1\C740   \ACE0\B515",Malgun Gothic,sans-serif;
+    font-size: 14px;
+    letter-spacing: -1px;
+    line-height: 1.5;
+    background: url(//t1.daumcdn.net/localimg/localimages/07/2018/pc/ico_star_220608.png) no-repeat;
+    display: block;
+    background-position: 0 -30px;
+    height: 100%;
+    width: 80%;
 }
   
 /*-----------------------------------------------------�̻� �� �ڵ�-------------------------------------*/

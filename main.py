@@ -90,6 +90,13 @@ def fetch_reviews(url):
 
     restaurant_name = driver.find_elements(By.CSS_SELECTOR, ".tit_location")[1].text
 
+    # ## 별점 가져오기
+    first_link = driver.find_element(By.CSS_SELECTOR, 'body .link_evaluation')
+    color_b_span = first_link.find_element(By.CSS_SELECTOR, 'span.color_b')
+    real_average_score = color_b_span.text
+
+    # ##
+
     # 캐시에 있는지 확인
     cache_path = f"cache/{restaurant_name}"
     if os.path.exists(cache_path):
@@ -140,17 +147,22 @@ def fetch_reviews(url):
 
         total_review += 1
         ave_relative_score += average_star - star
+        if total_review>50:
+            print('stop crawling review -  ' ,total_review)
+            break
     
     ret_average_score=-10
     if total_review!=0:
         ret_average_score=round(ave_relative_score / total_review, 2)
+    # print('total_review = ',total_review)
 
-    with open("crawling_data.json", "w", encoding="utf-8") as f:
-        json.dump(restaurant_data, f, indent=4, ensure_ascii=False)
+    # with open("crawling_data.json", "w", encoding="utf-8") as f:
+    #     json.dump(restaurant_data, f, indent=4, ensure_ascii=False)
 
     return {
         "restaurant_name": restaurant_name,
         "average_relative_score": ret_average_score,
+        "real_average_score":real_average_score,
         "review_data": restaurant_data,
     }
 
@@ -207,7 +219,7 @@ def save_review_to_json(
     }
 
     restaurant_data[restaurant_name].append(review_dict)
-
+    
 
 class InputData(BaseModel):
     url: str
@@ -228,6 +240,7 @@ async def scrape_and_get_reviews(data: InputData):
         return (
             data["sum_review"],
             data["average_star"],
+            data["real_average_score"],
             data["pos_num"],
             data["neg_num"],
         )
@@ -237,6 +250,7 @@ async def scrape_and_get_reviews(data: InputData):
     neg_con = []
     con = []
     res_name = data["restaurant_name"]
+    real_average_score=data["real_average_score"]
 
     pos_num = 0
     neg_num = 0
@@ -265,6 +279,9 @@ async def scrape_and_get_reviews(data: InputData):
     negative_sum = ""
     for review in neg_con:
         negative_sum += review + "\n"
+    
+    # print('pos sum=' , positive_sum)
+    # print('neg sum=', negative_sum)
 
     sum_review = []
     print("리뷰 요약 시작 : ", time.time() - start_time)
@@ -279,6 +296,7 @@ async def scrape_and_get_reviews(data: InputData):
     res_data = {
         "sum_review": sum_review,
         "average_star": average_star,
+        "real_average_score":real_average_score,
         "pos_num": pos_num,
         "neg_num": neg_num,
         "expire_time": end_time + 60 * 60 * 24 * 30,
@@ -287,7 +305,7 @@ async def scrape_and_get_reviews(data: InputData):
     with open(f"cache/{res_name}", "w", encoding="utf-8") as f:
         json.dump(res_data, f, indent=4, ensure_ascii=False)
 
-    return sum_review, average_star, pos_num, neg_num
+    return sum_review, average_star, real_average_score ,pos_num, neg_num
 
 
 @app.get("/")
@@ -297,7 +315,7 @@ async def main(request: Request):
 
 @app.get("/resultPage")
 async def result(
-    request: Request, name: Optional[str] = None, id: Optional[int] = None
+    request: Request, name: Optional[str] = None
 ):
     return templates.TemplateResponse("resultPage.html", {"request": request})
 

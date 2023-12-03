@@ -64,6 +64,20 @@
     </div>
 
     <h3 class="my-font mb-3 text-center">별점</h3>
+
+    <span class="ico_star star_rate" id="rating-bar">
+      <span class="ico_star inner_star" id="rating-bar-inner" style="width:0%"></span>
+    </span>
+
+
+
+    <div class="divider-custom">
+      <div class="divider-custom-line"></div>
+      <div class="divider-custom-icon"><i class="fas fa-star"></i></div>
+      <div class="divider-custom-line"></div>
+    </div>
+
+    <h3 class="my-font mb-3 text-center">상대별점</h3>
     <div id='average-rating' class="my-font mb-5 text-center">0.7</div>
 
     <div class="chart-container" id="myChartContainer">
@@ -83,6 +97,8 @@
     </div>
 
     <h3 class="my-font mb-3 text-center">요약 리뷰</h3>
+
+    <div class="text-center my-text my-font mb-3" id="total-review-explain"></div>
 
     <div class="chart-container align-center mt-5 mb-5" id="myChartContainer2">
       <canvas id="chart2" class="chart"></canvas>

@@ -54,11 +54,14 @@ function searchPlaces(query) {
 // '확인하기' 버튼을 눌렀을 때 - 크롤링 시작
 function startFetching(data) {
 
-    const server_url = "http://1.230.255.45:8001/result"
+    // const server_url = "http://1.230.255.45:8001/result"
+    const server_url="http://127.0.0.1:8001/result"
     currentId = data.id;
     const url = "http://place.map.kakao.com/" + data.id;
     const headerResultContainer = document.getElementById("headResult");
-    const averageResultContainer = document.getElementById("average-rating");
+    const realAverageStarContainer=document.getElementById("rating-bar-inner"); // 5.0 점 별점
+    const averageResultContainer = document.getElementById("average-rating"); // 상대별점
+    const totalReviewContainer=document.getElementById('total-review-explain');
     const posSumContainer = document.getElementById("pos-sum");
     const negSumContainer = document.getElementById("neg-sum");
 
@@ -90,13 +93,15 @@ function startFetching(data) {
         .then(data => {
             const reviews = data[0];
             const averageStar = data[1];
-            const pos_num = data[2];
-            const neg_num = data[3];
+            const realAverageStar=data[2]
+            const pos_num = data[3];
+            const neg_num = data[4];
 
             averageResultContainer.innerHTML = `
                 <h3 class="my-font" >${averageStar}</h3>
             `;
-
+            realAverageStarContainer.style.width=realAverageStar*20+'%';
+            totalReviewContainer.textContent=`${pos_num+neg_num}개의 리뷰가 존재합니다.`;
             posSumContainer.textContent = reviews[0][0].summary_text;
             negSumContainer.textContent = reviews[1][0].summary_text;
 
