@@ -1,6 +1,7 @@
 import json
 import time
 import re
+import os
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from fastapi import FastAPI, Request
@@ -89,6 +90,15 @@ def fetch_reviews(url):
 
     restaurant_name = driver.find_elements(By.CSS_SELECTOR, ".tit_location")[1].text
 
+    # 캐시에 있는지 확인
+    cache_path = f"cache/{restaurant_name}"
+    if os.path.exists(cache_path):
+        print(f"{cache_path} exists")
+        return restaurant_name
+
+    else:
+        print(f"{cache_path} does not exist")
+
     restaurant_data = {restaurant_name: []}
     print("리뷰 조회 시작")
     while True:
@@ -130,13 +140,17 @@ def fetch_reviews(url):
 
         total_review += 1
         ave_relative_score += average_star - star
+    
+    ret_average_score=-10
+    if total_review!=0:
+        ret_average_score=round(ave_relative_score / total_review, 2)
 
     with open("crawling_data.json", "w", encoding="utf-8") as f:
         json.dump(restaurant_data, f, indent=4, ensure_ascii=False)
 
     return {
         "restaurant_name": restaurant_name,
-        "average_relative_score": round(ave_relative_score / total_review, 2),
+        "average_relative_score": ret_average_score,
         "review_data": restaurant_data,
     }
 
@@ -205,6 +219,18 @@ async def scrape_and_get_reviews(data: InputData):
     start_time = time.time()
     print("fetch_reviews start")
     data = fetch_reviews(url)
+    # data가 restaurant_name만 왔으면 캐시에서 가져옴
+    if type(data) == str:
+        with open(f"cache/{data}", "r", encoding="utf-8") as f:
+            data = json.load(f)
+        end_time = time.time()
+        print("소요 시간 : ", end_time - start_time)
+        return (
+            data["sum_review"],
+            data["average_star"],
+            data["pos_num"],
+            data["neg_num"],
+        )
     print("fetch_reviews end")
 
     pos_con = []
@@ -227,9 +253,9 @@ async def scrape_and_get_reviews(data: InputData):
         # print(review)
         if sentiment_model(review)[0]["label"] == "LABEL_1":  # 긍정
             pos_con.append(review)
-            pos_num+=1
+            pos_num += 1
         elif sentiment_model(review)[0]["label"] == "LABEL_0":  # 부정
-            neg_num+=1
+            neg_num += 1
             neg_con.append(review)
     print("감정 분류 완료 : ", time.time() - start_time)
 
@@ -248,20 +274,35 @@ async def scrape_and_get_reviews(data: InputData):
     print("리뷰 요약 완료: ", time.time() - start_time)
     end_time = time.time()
     print("소요 시간 : ", end_time - start_time)
-    average_star=data["average_relative_score"]
+    average_star = data["average_relative_score"]
+
+    res_data = {
+        "sum_review": sum_review,
+        "average_star": average_star,
+        "pos_num": pos_num,
+        "neg_num": neg_num,
+        "expire_time": end_time + 60 * 60 * 24 * 30,
+    }
+
+    with open(f"cache/{res_name}", "w", encoding="utf-8") as f:
+        json.dump(res_data, f, indent=4, ensure_ascii=False)
 
     return sum_review, average_star, pos_num, neg_num
 
 
-@app.get('/')
+@app.get("/")
 async def main(request: Request):
-    return templates.TemplateResponse('main.html', {'request': request})
+    return templates.TemplateResponse("main.html", {"request": request})
+
 
 @app.get("/resultPage")
-async def result(request: Request, name: Optional[str] = None, id: Optional[int] = None):
+async def result(
+    request: Request, name: Optional[str] = None, id: Optional[int] = None
+):
     return templates.TemplateResponse("resultPage.html", {"request": request})
+
 
 if __name__ == "__main__":
     import uvicorn
 
-    uvicorn.run("main:app", host="127.0.0.1", port=8001, reload=True)
+    uvicorn.run(app, host="0.0.0.0", port=8001)
