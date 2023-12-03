@@ -70,6 +70,10 @@
       <canvas id="chart1" class="chart"></canvas>
     </div>
 
+    <div class="text-center my-text my-font mt-3" id="compare-near">
+      
+    </div>
+
 
     <!-- Icon Divider-->
     <div class="divider-custom mt-5">
@@ -79,6 +83,14 @@
     </div>
 
     <h3 class="my-font mb-3 text-center">요약 리뷰</h3>
+
+    <div class="chart-container align-center mt-5 mb-5" id="myChartContainer2">
+      <canvas id="chart2" class="chart"></canvas>
+    </div>
+
+    <div class="text-center my-text my-font mb-3" id="sum-explain">
+      
+    </div>
 
 
     <div class="my-font justify-content-center pe-5 ps-5">
@@ -108,16 +120,11 @@
       </div>
     </div>
 
-
-    <div class="chart-container" id="myChartContainer">
-      <canvas id="chart2" class="chart"></canvas>
-    </div>
-
     <div class="col-auto text-center"><button class="btn btn-primary btn-lg mt-5" id="submit-button" type="submit"
         onclick="moveToKakaoMap()">전체 리뷰 확인하기</button></div>
 
     <div class="col-auto text-center"><button class="btn btn-primary btn-lg mt-5 mb-5" id="submit-button" type="submit"
-        onclick="goBackToMainPage()">돌아가기</button></div>
+        onclick="moveToMainPage()">돌아가기</button></div>
 
   </section>
   <!-- 결과화면 생성-->
